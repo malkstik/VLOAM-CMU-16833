@@ -60,8 +60,8 @@ std::vector<cv::KeyPoint> ImageUtil::detKeypoints(cv::Mat& img)
     }
     else if (detector_type == DetectorType::AKAZE)
       detector = cv::AKAZE::create();
-    else if (detector_type == DetectorType::SIFT)
-      detector = cv::SIFT::create();
+    // else if (detector_type == DetectorType::SIFT)
+    //   detector = cv::SIFT::create();
     else
     {
       std::cerr << "Detector is not implemented" << std::endl;
@@ -186,10 +186,10 @@ cv::Mat ImageUtil::descKeypoints(std::vector<cv::KeyPoint>& keypoints, cv::Mat& 
   {
     extractor = cv::AKAZE::create();
   }
-  else if (descriptor_type == DescriptorType::SIFT)
-  {
-    extractor = cv::SIFT::create();
-  }
+  // else if (descriptor_type == DescriptorType::SIFT)
+  // {
+  //   extractor = cv::SIFT::create();
+  // }
   else
   {
     std::cerr << "Decscriptor is not implemented" << std::endl;
@@ -226,10 +226,10 @@ std::vector<cv::DMatch> ImageUtil::matchDescriptors(cv::Mat& descriptors0, cv::M
     {
       normType = cv::NORM_HAMMING;
     }
-    else if (descriptor_type == DescriptorType::SIFT)
-    {
-      normType = cv::NORM_L2;
-    }
+    // else if (descriptor_type == DescriptorType::SIFT)
+    // {
+    //   normType = cv::NORM_L2;
+    // }
     else
     {
       std::cerr << "Decscriptor is not implemented" << std::endl;
