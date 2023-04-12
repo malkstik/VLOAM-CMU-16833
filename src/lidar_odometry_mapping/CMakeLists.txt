@@ -55,10 +55,16 @@ add_library(laser_mapping SHARED
 target_link_libraries(laser_mapping ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} vloam_tf)
 set_target_properties(laser_mapping PROPERTIES PUBLIC_HEADER include/${PROJECT_NAME}/laser_mapping.h)
 
+add_library(ikd_Tree SHARED
+  src/ikd_Tree.cpp
+)
+target_link_libraries(ikd_Tree ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} vloam_tf)
+set_target_properties(ikd_Tree PROPERTIES PUBLIC_HEADER include/${PROJECT_NAME}/ikd_Tree.h)
+
 add_library(lidar_odometry_mapping SHARED
   src/lidar_odometry_mapping.cpp
 )
-target_link_libraries(lidar_odometry_mapping ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} scan_registration laser_odometry laser_mapping vloam_tf)
+target_link_libraries(lidar_odometry_mapping ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} scan_registration laser_odometry laser_mapping vloam_tf ikd_Tree)
 set_target_properties(lidar_odometry_mapping PROPERTIES PUBLIC_HEADER include/${PROJECT_NAME}/lidar_odometry_mapping.h)
 
 install(

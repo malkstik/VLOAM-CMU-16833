@@ -68,8 +68,11 @@ void LaserMapping::init(std::shared_ptr<VloamTF> &vloam_tf_)
   }
 
   // kd-tree
-  kdtreeCornerFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
-  kdtreeSurfFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
+  // kdtreeCornerFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
+  // kdtreeSurfFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
+
+  kdtreeCornerFromMap = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
+  kdtreeSurfFromMap = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
 
   parameters[0] = 0.0;
   parameters[1] = 0.0;
@@ -449,8 +452,10 @@ void LaserMapping::solveMapping()
   {
     TicToc t_opt;
     TicToc t_tree;
-    kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
-    kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
+    // kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
+    // kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
+    kdtreeCornerFromMap->Build((*laserCloudCornerFromMap).points);
+    kdtreeSurfFromMap->Build((*laserCloudSurfFromMap).points);
 
     if (verbose_level > 1)
       ROS_INFO("build tree time %f ms \n", t_tree.toc());
@@ -474,7 +479,22 @@ void LaserMapping::solveMapping()
         pointOri = laserCloudCornerStack->points[i];
         // double sqrtDis = pointOri.x * pointOri.x + pointOri.y * pointOri.y + pointOri.z * pointOri.z;
         pointAssociateToMap(&pointOri, &pointSel);
-        kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+
+        KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
+        //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+        kdtreeCornerFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
+        //match nearest poitns to inds
+        for(int i=0; i<5; i++){
+          std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudCornerFromMap->points.begin(),
+                                                                laserCloudCornerFromMap->points.end(), 
+                                                                MatchPoint(nearestPoints[i])
+                                                                 );
+          if (it != laserCloudCornerFromMap->points.end()){
+            pointSearchInd.push_back(it - laserCloudCornerFromMap->points.begin());
+          }
+          else
+            ROS_WARN("Element not found");
+        }
 
         if (pointSearchSqDis[4] < 1.0)
         {
@@ -540,7 +560,23 @@ void LaserMapping::solveMapping()
         pointOri = laserCloudSurfStack->points[i];
         // double sqrtDis = pointOri.x * pointOri.x + pointOri.y * pointOri.y + pointOri.z * pointOri.z;
         pointAssociateToMap(&pointOri, &pointSel);
-        kdtreeSurfFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+        //kdtreeSurfFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+
+        KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
+        //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+        kdtreeSurfFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
+        //match nearest poitns to inds
+        for(int i=0; i<5; i++){
+          std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudSurfFromMap->points.begin(),
+                                                                laserCloudSurfFromMap->points.end(), 
+                                                                MatchPoint(nearestPoints[i])
+                                                                 );
+          if (it != laserCloudSurfFromMap->points.end()){
+            pointSearchInd.push_back(it - laserCloudSurfFromMap->points.begin());
+          }
+          else
+            ROS_WARN("Element not found");
+        }
 
         Eigen::Matrix<double, 5, 3> matA0;
         Eigen::Matrix<double, 5, 1> matB0 = -1 * Eigen::Matrix<double, 5, 1>::Ones();

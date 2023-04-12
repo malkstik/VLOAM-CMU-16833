@@ -40,6 +40,7 @@ find_package(catkin REQUIRED COMPONENTS
   visual_odometry
   lidar_odometry_mapping
   vloam_tf
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -178,7 +179,7 @@ add_dependencies(vloam_main_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(vloam_main_node
-  ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES} Eigen3::Eigen ${CERES_LIBRARIES} image_util point_cloud_util visual_odometry lidar_odometry_mapping vloam_tf
+  ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES} Eigen3::Eigen ${CERES_LIBRARIES} image_util point_cloud_util visual_odometry lidar_odometry_mapping vloam_tf ikd_Tree
 )
 
 #############

@@ -53,7 +53,7 @@ typedef actionlib::SimpleActionServer<vloam_main::vloam_mainAction> Server;
 vloam_main::vloam_mainFeedback feedback;
 vloam_main::vloam_mainResult result;
 
-int count, i, j;  // TODO: check if count will overflow
+int counter, i, j;  // TODO: check if counter will overflow
 
 std::shared_ptr<vloam::VisualOdometry> VO;
 cv_bridge::CvImagePtr cv_ptr;
@@ -111,7 +111,7 @@ void init(const vloam_main::vloam_mainGoalConstPtr& goal)
   }
 
   // section 2, prepare for a new set of estimation
-  count = 0;
+  counter = 0;
 
   vloam_tf = std::make_shared<vloam::VloamTF>();
   VO = std::make_shared<vloam::VisualOdometry>();
@@ -128,7 +128,7 @@ void callback(const sensor_msgs::Image::ConstPtr& image_msg, const sensor_msgs::
   static tf2_ros::StaticTransformBroadcaster static_broadcaster;
   static tf2_ros::TransformBroadcaster dynamic_broadcaster;
 
-  i = count % 2;
+  i = counter % 2;
 
   VO->reset();
   LOAM->reset();
@@ -138,7 +138,7 @@ void callback(const sensor_msgs::Image::ConstPtr& image_msg, const sensor_msgs::
   VO->processImage(cv_ptr->image);
 
   // Section 2: Process Static Transformations and Camera Intrinsics
-  if (count == 0)
+  if (counter == 0)
   {
     vloam_tf->processStaticTransform();
     VO->setUpPointCloud(camera_info_msg);
@@ -151,7 +151,7 @@ void callback(const sensor_msgs::Image::ConstPtr& image_msg, const sensor_msgs::
   VO->processPointCloud(point_cloud_msg, point_cloud_pcl, visualize_depth, publish_point_cloud);
 
   // Section 4: Solve and Publish VO
-  if (count > 0)
+  if (counter > 0)
   {
     VO->solveNlsAll();  // result is cam0_curr_T_cam0_last, f2f odometry
                         // VO->solveNls2dOnly();
@@ -168,15 +168,15 @@ void callback(const sensor_msgs::Image::ConstPtr& image_msg, const sensor_msgs::
   LOAM->laserMappingIO();
 
   // Section 6, save odoms
-  if (save_traj and count >= start_frame and count <= end_frame)
+  if (save_traj and counter >= start_frame and counter <= end_frame)
   {
-    vloam_tf->VO2Cam0StartFrame(VOFilePtr, count - start_frame);
-    vloam_tf->LO2Cam0StartFrame(LOFilePtr, count - start_frame);
-    vloam_tf->MO2Cam0StartFrame(MOFilePtr, count - start_frame);
+    vloam_tf->VO2Cam0StartFrame(VOFilePtr, counter - start_frame);
+    vloam_tf->LO2Cam0StartFrame(LOFilePtr, counter - start_frame);
+    vloam_tf->MO2Cam0StartFrame(MOFilePtr, counter - start_frame);
   }
 
-  ++count;
-  ROS_INFO("total count = %d", count);
+  ++counter;
+  ROS_INFO("total counter = %d", counter);
 }
 
 void execute(const vloam_main::vloam_mainGoalConstPtr& goal, Server* as)

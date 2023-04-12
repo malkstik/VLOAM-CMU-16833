@@ -61,8 +61,11 @@ void LaserOdometry::init(std::shared_ptr<VloamTF>& vloam_tf_)
   timeSurfPointsLessFlat = 0;
   timeLaserCloudFullRes = 0;
 
-  kdtreeCornerLast = boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZI>>();
-  kdtreeSurfLast = boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZI>>();
+  // kdtreeCornerLast = boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZI>>();
+  // kdtreeSurfLast = boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZI>>();
+
+  kdtreeCornerLast = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
+  kdtreeSurfLast = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
 
   cornerPointsSharp = boost::make_shared<pcl::PointCloud<PointType>>();
   cornerPointsLessSharp = boost::make_shared<pcl::PointCloud<PointType>>();
@@ -259,6 +262,7 @@ void LaserOdometry::solveLO()
 
       pcl::PointXYZI pointSel;
       std::vector<int> pointSearchInd;
+      KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
       std::vector<float> pointSearchSqDis;
 
       TicToc t_data;
@@ -266,7 +270,19 @@ void LaserOdometry::solveLO()
       for (int i = 0; i < cornerPointsSharpNum; ++i)
       {
         TransformToStart(&(cornerPointsSharp->points[i]), &pointSel);
-        kdtreeCornerLast->nearestKSearch(pointSel, 1, pointSearchInd, pointSearchSqDis);
+        kdtreeCornerLast->Nearest_Search(pointSel, 1, nearestPoints, pointSearchSqDis);
+        //match nearest poitns to inds
+        for(int i=0; i<1; i++){
+          std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudCornerLast->points.begin(),
+                                                                laserCloudCornerLast->points.end(), 
+                                                                MatchPoint(nearestPoints[i])
+                                                                 );
+          if (it != laserCloudCornerLast->points.end()){
+            pointSearchInd.push_back(it - laserCloudCornerLast->points.begin());
+          }
+          else
+            ROS_WARN("Element not found");
+        }
 
         int closestPointInd = -1, minPointInd2 = -1;
         if (pointSearchSqDis[0] < DISTANCE_SQ_THRESHOLD)
@@ -353,7 +369,19 @@ void LaserOdometry::solveLO()
       for (int i = 0; i < surfPointsFlatNum; ++i)
       {
         TransformToStart(&(surfPointsFlat->points[i]), &pointSel);
-        kdtreeSurfLast->nearestKSearch(pointSel, 1, pointSearchInd, pointSearchSqDis);
+        kdtreeSurfLast->Nearest_Search(pointSel, 1, nearestPoints, pointSearchSqDis);
+        //match nearest poitns to inds
+        for(int i=0; i<1; i++){
+          std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudSurfLast->points.begin(),
+                                                                laserCloudSurfLast->points.end(), 
+                                                                MatchPoint(nearestPoints[i])
+                                                                 );
+          if (it != laserCloudSurfLast->points.end()){
+            pointSearchInd.push_back(it - laserCloudSurfLast->points.begin());
+          }
+          else
+            ROS_WARN("Element not found");
+        }
 
         int closestPointInd = -1, minPointInd2 = -1, minPointInd3 = -1;
         if (pointSearchSqDis[0] < DISTANCE_SQ_THRESHOLD)
@@ -522,8 +550,8 @@ void LaserOdometry::solveLO()
   // std::cout << "the size of corner last is " << laserCloudCornerLastNum << ", and the size of surf last is " <<
   // laserCloudSurfLastNum << '\n';
 
-  kdtreeCornerLast->setInputCloud(laserCloudCornerLast);
-  kdtreeSurfLast->setInputCloud(laserCloudSurfLast);
+  kdtreeCornerLast->Build((*laserCloudCornerLast).points);
+  kdtreeSurfLast->Build((*laserCloudSurfLast).points);
 
   if (verbose_level > 1)
   {
@@ -627,4 +655,7 @@ void LaserOdometry::output(Eigen::Quaterniond& q_w_curr_, Eigen::Vector3d& t_w_c
     skip_frame = true;
   }
 }
+
+
+
 }  // namespace vloam

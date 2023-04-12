@@ -58,6 +58,7 @@
 #include <mutex>
 #include <queue>
 
+#include <lidar_odometry_mapping/ikd_Tree.h>
 namespace vloam
 {
 class LaserOdometry
@@ -103,8 +104,11 @@ private:
   double timeSurfPointsLessFlat;
   double timeLaserCloudFullRes;
 
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeCornerLast;
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeSurfLast;
+  // pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeCornerLast;
+  // pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeSurfLast;
+
+  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeCornerLast;
+  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeSurfLast;
 
   pcl::PointCloud<PointType>::Ptr cornerPointsSharp;
   pcl::PointCloud<PointType>::Ptr cornerPointsLessSharp;
@@ -144,6 +148,18 @@ private:
   nav_msgs::Path laserPath;
 
   int frameCount;
+
+  struct MatchPoint
+  {
+    public:
+      MatchPoint(const pcl::PointXYZI& p) : p_(p) {}
+      bool operator()(const pcl::PointXYZI& obj) const
+      {
+        return(( obj.x == p_.x) && (obj.y == p_.y) && (obj.z == p_.z) && (obj.intensity == p_.intensity));
+      }
+    private:
+      const pcl::PointXYZI& p_;
+  };
 };
 
 }  // namespace vloam
