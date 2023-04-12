@@ -481,6 +481,7 @@ void LaserMapping::solveMapping()
         pointAssociateToMap(&pointOri, &pointSel);
 
         KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
+        pointSearchInd.clear();
         //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
         kdtreeCornerFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
@@ -564,6 +565,7 @@ void LaserMapping::solveMapping()
 
         KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
         //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+        pointSearchInd.clear();
         kdtreeSurfFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
         for(int i=0; i<5; i++){

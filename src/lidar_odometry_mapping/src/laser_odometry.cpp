@@ -269,6 +269,7 @@ void LaserOdometry::solveLO()
       // find correspondence for corner features
       for (int i = 0; i < cornerPointsSharpNum; ++i)
       {
+        pointSearchInd.clear();
         TransformToStart(&(cornerPointsSharp->points[i]), &pointSel);
         kdtreeCornerLast->Nearest_Search(pointSel, 1, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
@@ -279,6 +280,13 @@ void LaserOdometry::solveLO()
                                                                  );
           if (it != laserCloudCornerLast->points.end()){
             pointSearchInd.push_back(it - laserCloudCornerLast->points.begin());
+            // ROS_INFO("pointsel.x = %f | nearestPoint.x = %f", pointSel.x, laserCloudCornerLast->points[pointSearchInd[0]].x);
+            // ROS_INFO("pointsel.y = %f | nearestPoint.y = %f", pointSel.y, laserCloudCornerLast->points[pointSearchInd[0]].y);
+            // ROS_INFO("pointsel.z = %f | nearestPoint.z = %f", pointSel.z, laserCloudCornerLast->points[pointSearchInd[0]].z);
+
+            // ROS_INFO("matched.x = %f | nearestPoint.x = %f", laserCloudCornerLast->points[pointSearchInd[0]].x, nearestPoints[0].x);
+            // ROS_INFO("matched.y = %f | nearestPoint.y = %f", laserCloudCornerLast->points[pointSearchInd[0]].y, nearestPoints[0].y);
+            // ROS_INFO("matched.z = %f | nearestPoint.z = %f", laserCloudCornerLast->points[pointSearchInd[0]].z, nearestPoints[0].z);
           }
           else
             ROS_WARN("Element not found");
@@ -369,6 +377,7 @@ void LaserOdometry::solveLO()
       for (int i = 0; i < surfPointsFlatNum; ++i)
       {
         TransformToStart(&(surfPointsFlat->points[i]), &pointSel);
+        pointSearchInd.clear();
         kdtreeSurfLast->Nearest_Search(pointSel, 1, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
         for(int i=0; i<1; i++){
