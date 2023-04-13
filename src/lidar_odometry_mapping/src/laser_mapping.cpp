@@ -68,11 +68,11 @@ void LaserMapping::init(std::shared_ptr<VloamTF> &vloam_tf_)
   }
 
   // kd-tree
-  // kdtreeCornerFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
-  // kdtreeSurfFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
+  kdtreeCornerFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
+  kdtreeSurfFromMap = boost::make_shared<pcl::KdTreeFLANN<PointType>>();
 
-  kdtreeCornerFromMap = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
-  kdtreeSurfFromMap = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
+  ikdtreeCornerFromMap = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
+  ikdtreeSurfFromMap = boost::make_shared<KD_TREE<pcl::PointXYZI>>();
 
   parameters[0] = 0.0;
   parameters[1] = 0.0;
@@ -452,10 +452,10 @@ void LaserMapping::solveMapping()
   {
     TicToc t_opt;
     TicToc t_tree;
-    // kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
-    // kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
-    kdtreeCornerFromMap->Build((*laserCloudCornerFromMap).points);
-    kdtreeSurfFromMap->Build((*laserCloudSurfFromMap).points);
+    kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
+    kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
+    ikdtreeCornerFromMap->Build((*laserCloudCornerFromMap).points);
+    ikdtreeSurfFromMap->Build((*laserCloudSurfFromMap).points);
 
     if (verbose_level > 1)
       ROS_INFO("build tree time %f ms \n", t_tree.toc());
@@ -481,9 +481,9 @@ void LaserMapping::solveMapping()
         pointAssociateToMap(&pointOri, &pointSel);
 
         KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
-        pointSearchInd.clear();
-        //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
-        kdtreeCornerFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
+        ikdpointSearchInd.clear();
+        kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+        ikdtreeCornerFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
         for(int i=0; i<5; i++){
           std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudCornerFromMap->points.begin(),
@@ -491,11 +491,12 @@ void LaserMapping::solveMapping()
                                                                 MatchPoint(nearestPoints[i])
                                                                  );
           if (it != laserCloudCornerFromMap->points.end()){
-            pointSearchInd.push_back(it - laserCloudCornerFromMap->points.begin());
+            ikdpointSearchInd.push_back(it - laserCloudCornerFromMap->points.begin());
           }
           else
             ROS_WARN("Element not found");
         }
+        //ROS_INFO("CornerFromMap kd: %ld | ikd: %ld", pointSearchInd[4], ikdpointSearchInd[4]);
 
         if (pointSearchSqDis[4] < 1.0)
         {
@@ -561,12 +562,11 @@ void LaserMapping::solveMapping()
         pointOri = laserCloudSurfStack->points[i];
         // double sqrtDis = pointOri.x * pointOri.x + pointOri.y * pointOri.y + pointOri.z * pointOri.z;
         pointAssociateToMap(&pointOri, &pointSel);
-        //kdtreeSurfFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
+        kdtreeSurfFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
 
         KD_TREE<pcl::PointXYZI>::PointVector nearestPoints;
-        //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
-        pointSearchInd.clear();
-        kdtreeSurfFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
+        ikdpointSearchInd.clear();
+        ikdtreeSurfFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
         for(int i=0; i<5; i++){
           std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudSurfFromMap->points.begin(),
@@ -574,11 +574,12 @@ void LaserMapping::solveMapping()
                                                                 MatchPoint(nearestPoints[i])
                                                                  );
           if (it != laserCloudSurfFromMap->points.end()){
-            pointSearchInd.push_back(it - laserCloudSurfFromMap->points.begin());
+            ikdpointSearchInd.push_back(it - laserCloudSurfFromMap->points.begin());
           }
           else
             ROS_WARN("Element not found");
         }
+        //ROS_INFO("SurfFromMap kd: %ld | ikd: %ld", pointSearchInd[4], ikdpointSearchInd[4]);
 
         Eigen::Matrix<double, 5, 3> matA0;
         Eigen::Matrix<double, 5, 1> matB0 = -1 * Eigen::Matrix<double, 5, 1>::Ones();

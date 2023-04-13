@@ -104,11 +104,11 @@ private:
   double timeSurfPointsLessFlat;
   double timeLaserCloudFullRes;
 
-  // pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeCornerLast;
-  // pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeSurfLast;
+  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeCornerLast;
+  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtreeSurfLast;
 
-  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeCornerLast;
-  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeSurfLast;
+  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > ikdtreeCornerLast;
+  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > ikdtreeSurfLast;
 
   pcl::PointCloud<PointType>::Ptr cornerPointsSharp;
   pcl::PointCloud<PointType>::Ptr cornerPointsLessSharp;

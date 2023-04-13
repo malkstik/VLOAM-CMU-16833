@@ -138,10 +138,10 @@ private:
   pcl::PointCloud<PointType>::Ptr laserCloudSurfArray[laserCloudNum];
 
   // kd-tree
-  // pcl::KdTreeFLANN<PointType>::Ptr kdtreeCornerFromMap;
-  // pcl::KdTreeFLANN<PointType>::Ptr kdtreeSurfFromMap;
-  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeCornerFromMap;
-  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeSurfFromMap;
+  pcl::KdTreeFLANN<PointType>::Ptr kdtreeCornerFromMap;
+  pcl::KdTreeFLANN<PointType>::Ptr kdtreeSurfFromMap;
+  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > ikdtreeCornerFromMap;
+  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > ikdtreeSurfFromMap;
 
   double parameters[7];
   Eigen::Map<Eigen::Quaterniond> q_w_curr;
@@ -165,6 +165,7 @@ private:
   pcl::VoxelGrid<PointType> downSizeFilterSurf;
 
   std::vector<int> pointSearchInd;
+  std::vector<int> ikdpointSearchInd;
   std::vector<float> pointSearchSqDis;
 
   PointType pointOri, pointSel;
