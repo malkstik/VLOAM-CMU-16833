@@ -245,7 +245,7 @@ int main(int argc, char** argv)
   Server server(nh, "load_small_dataset_action_server", boost::bind(&execute, _1, &server), false);
   server.start();
 
-  ros::Rate loop_rate(1000);
+  ros::Rate loop_rate(100);
   while (ros::ok())
   {
     ros::spinOnce();
