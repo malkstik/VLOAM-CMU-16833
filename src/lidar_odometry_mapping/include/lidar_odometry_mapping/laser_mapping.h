@@ -67,9 +67,6 @@
 #include "lidar_odometry_mapping/lidarFactor.hpp"
 #include "lidar_odometry_mapping/tic_toc.h"
 
-#include <lidar_odometry_mapping/ikd_Tree.h>
-
-
 namespace vloam
 {
 class LaserMapping
@@ -138,10 +135,8 @@ private:
   pcl::PointCloud<PointType>::Ptr laserCloudSurfArray[laserCloudNum];
 
   // kd-tree
-  // pcl::KdTreeFLANN<PointType>::Ptr kdtreeCornerFromMap;
-  // pcl::KdTreeFLANN<PointType>::Ptr kdtreeSurfFromMap;
-  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeCornerFromMap;
-  boost::shared_ptr<KD_TREE<pcl::PointXYZI> > kdtreeSurfFromMap;
+  pcl::KdTreeFLANN<PointType>::Ptr kdtreeCornerFromMap;
+  pcl::KdTreeFLANN<PointType>::Ptr kdtreeSurfFromMap;
 
   double parameters[7];
   Eigen::Map<Eigen::Quaterniond> q_w_curr;
@@ -188,18 +183,6 @@ private:
   bool skip_frame;
   int mapping_skip_frame;
   int map_pub_number;
-
-  struct MatchPoint
-  {
-    public:
-      MatchPoint(const pcl::PointXYZI& p) : p_(p) {}
-      bool operator()(const pcl::PointXYZI& obj) const
-      {
-        return(( obj.x == p_.x) && (obj.y == p_.y) && (obj.z == p_.z) && (obj.intensity == p_.intensity));
-      }
-    private:
-      const pcl::PointXYZI& p_;
-  };
 };
 
 }  // namespace vloam
