@@ -218,6 +218,11 @@ void LaserMapping::solveMapping()
   if (t_w_curr.z() + 25.0 < 0)
     centerCubeK--;
 
+  pcl::PointCloud<PointType> cornerPointCloudToRemove;
+  pcl::PointCloud<PointType> surfPointCloudToRemove;
+  pcl::PointCloud<PointType> cornerPointCloudToAdd;
+  pcl::PointCloud<PointType> surfPointCloudToAdd;
+
   while (centerCubeI < 3)
   {
     for (int j = 0; j < laserCloudHeight; j++)
@@ -229,6 +234,8 @@ void LaserMapping::solveMapping()
             laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
         pcl::PointCloud<PointType>::Ptr laserCloudCubeSurfPointer =
             laserCloudSurfArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
+        surfPointCloudToRemove += *laserCloudCubeSurfPointer;
+        cornerPointCloudToRemove += *laserCloudCubeCornerPointer;
         for (; i >= 1; i--)
         {
           laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k] =
@@ -260,6 +267,8 @@ void LaserMapping::solveMapping()
             laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
         pcl::PointCloud<PointType>::Ptr laserCloudCubeSurfPointer =
             laserCloudSurfArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
+        surfPointCloudToRemove += *laserCloudCubeSurfPointer;
+        cornerPointCloudToRemove += *laserCloudCubeCornerPointer;
         for (; i < laserCloudWidth - 1; i++)
         {
           laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k] =
@@ -291,6 +300,8 @@ void LaserMapping::solveMapping()
             laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
         pcl::PointCloud<PointType>::Ptr laserCloudCubeSurfPointer =
             laserCloudSurfArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
+        surfPointCloudToRemove += *laserCloudCubeSurfPointer;
+        cornerPointCloudToRemove += *laserCloudCubeCornerPointer;
         for (; j >= 1; j--)
         {
           laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k] =
@@ -322,6 +333,8 @@ void LaserMapping::solveMapping()
             laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
         pcl::PointCloud<PointType>::Ptr laserCloudCubeSurfPointer =
             laserCloudSurfArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
+        surfPointCloudToRemove += *laserCloudCubeSurfPointer;
+        cornerPointCloudToRemove += *laserCloudCubeCornerPointer;
         for (; j < laserCloudHeight - 1; j++)
         {
           laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k] =
@@ -353,6 +366,8 @@ void LaserMapping::solveMapping()
             laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
         pcl::PointCloud<PointType>::Ptr laserCloudCubeSurfPointer =
             laserCloudSurfArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
+        surfPointCloudToRemove += *laserCloudCubeSurfPointer;
+        cornerPointCloudToRemove += *laserCloudCubeCornerPointer;
         for (; k >= 1; k--)
         {
           laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k] =
@@ -384,6 +399,8 @@ void LaserMapping::solveMapping()
             laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
         pcl::PointCloud<PointType>::Ptr laserCloudCubeSurfPointer =
             laserCloudSurfArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k];
+        surfPointCloudToRemove += *laserCloudCubeSurfPointer;
+        cornerPointCloudToRemove += *laserCloudCubeCornerPointer;
         for (; k < laserCloudDepth - 1; k++)
         {
           laserCloudCornerArray[i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k] =
@@ -413,6 +430,8 @@ void LaserMapping::solveMapping()
         if (i >= 0 && i < laserCloudWidth && j >= 0 && j < laserCloudHeight && k >= 0 && k < laserCloudDepth)
         {
           laserCloudValidInd[laserCloudValidNum] = i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k;
+          surfPointCloudToAdd += *laserCloudSurfArray[laserCloudValidInd[laserCloudValidNum]];
+          cornerPointCloudToAdd += *laserCloudCornerArray[laserCloudValidInd[laserCloudValidNum]];
           laserCloudValidNum++;
           laserCloudSurroundInd[laserCloudSurroundNum] =
               i + laserCloudWidth * j + laserCloudWidth * laserCloudHeight * k;
@@ -448,14 +467,31 @@ void LaserMapping::solveMapping()
     ROS_INFO("map corner num %d  surf num %d \n", laserCloudCornerFromMapNum, laserCloudSurfFromMapNum);
   }
 
+  ROS_INFO("laserCloudCornerFromMapNum = %d | kdtreeCornerFromMap = %d\n", laserCloudCornerFromMapNum, kdtreeCornerFromMap->size());
+  ROS_INFO("laserCloudSurfFromMapNum = %d | kdtreeSurfFromMap = %d\n", laserCloudSurfFromMapNum, kdtreeSurfFromMap->size());
+  ROS_INFO("cornerPointCloudToRemove.size() = %ld", cornerPointCloudToRemove.points.size());
+  ROS_INFO("cornerPointCloudsToAdd.size() = %ld", cornerPointCloudToAdd.points.size());
+
   if (laserCloudCornerFromMapNum > 10 && laserCloudSurfFromMapNum > 50)
   {
     TicToc t_opt;
     TicToc t_tree;
     // kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
     // kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
-    kdtreeCornerFromMap->Build((*laserCloudCornerFromMap).points);
-    kdtreeSurfFromMap->Build((*laserCloudSurfFromMap).points);
+    if (kdtreeCornerFromMap->Root_Node == NULL){
+      kdtreeCornerFromMap->Build((*laserCloudCornerFromMap).points);
+      kdtreeSurfFromMap->Build((*laserCloudSurfFromMap).points);
+    }
+    else{
+      kdtreeCornerFromMap->Delete_Points(cornerPointCloudToRemove.points);
+      kdtreeSurfFromMap->Delete_Points(surfPointCloudToRemove.points);
+
+      kdtreeCornerFromMap->Add_Points(cornerPointCloudToAdd.points, false);
+      kdtreeSurfFromMap->Add_Points(surfPointCloudToAdd.points, false);
+
+    }
+    
+
 
     if (verbose_level > 1)
       ROS_INFO("build tree time %f ms \n", t_tree.toc());
@@ -493,8 +529,8 @@ void LaserMapping::solveMapping()
           if (it != laserCloudCornerFromMap->points.end()){
             pointSearchInd.push_back(it - laserCloudCornerFromMap->points.begin());
           }
-          else
-            ROS_WARN("Element not found");
+          // else
+          //   ROS_WARN("Element not found");
         }
 
         if (pointSearchSqDis[4] < 1.0)
@@ -576,8 +612,8 @@ void LaserMapping::solveMapping()
           if (it != laserCloudSurfFromMap->points.end()){
             pointSearchInd.push_back(it - laserCloudSurfFromMap->points.begin());
           }
-          else
-            ROS_WARN("Element not found");
+          // else
+          //   ROS_WARN("Element not found");
         }
 
         Eigen::Matrix<double, 5, 3> matA0;
