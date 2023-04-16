@@ -223,6 +223,8 @@ void LaserMapping::solveMapping()
   pcl::PointCloud<PointType> cornerPointCloudToAdd;
   pcl::PointCloud<PointType> surfPointCloudToAdd;
 
+  ROS_INFO("centerCubeI = %d, centerCubeJ = %d, centerCubeK = %d\n", centerCubeI, centerCubeJ, centerCubeK);
+
   while (centerCubeI < 3)
   {
     for (int j = 0; j < laserCloudHeight; j++)
@@ -481,13 +483,18 @@ void LaserMapping::solveMapping()
     if (kdtreeCornerFromMap->Root_Node == NULL){
       kdtreeCornerFromMap->Build((*laserCloudCornerFromMap).points);
       kdtreeSurfFromMap->Build((*laserCloudSurfFromMap).points);
+      kdtreeSurfFromMap->set_downsample_param(planeRes);
+      kdtreeSurfFromMap->set_downsample_param(lineRes);
+
     }
     else{
-      kdtreeCornerFromMap->Delete_Points(cornerPointCloudToRemove.points);
-      kdtreeSurfFromMap->Delete_Points(surfPointCloudToRemove.points);
+      // kdtreeCornerFromMap->Delete_Points(cornerPointCloudToRemove.points);
+      // kdtreeSurfFromMap->Delete_Points(surfPointCloudToRemove.points);
 
-      kdtreeCornerFromMap->Add_Points(cornerPointCloudToAdd.points, false);
-      kdtreeSurfFromMap->Add_Points(surfPointCloudToAdd.points, false);
+      // kdtreeCornerFromMap->Add_Points(cornerPointCloudToAdd.points, true);
+      // kdtreeSurfFromMap->Add_Points(surfPointCloudToAdd.points, true);
+      kdtreeCornerFromMap->Build(cornerPointCloudToAdd.points);
+      kdtreeSurfFromMap->Build(surfPointCloudToAdd.points);
 
     }
     
@@ -521,17 +528,17 @@ void LaserMapping::solveMapping()
         //kdtreeCornerFromMap->nearestKSearch(pointSel, 5, pointSearchInd, pointSearchSqDis);
         kdtreeCornerFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
-        for(int i=0; i<5; i++){
-          std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudCornerFromMap->points.begin(),
-                                                                laserCloudCornerFromMap->points.end(), 
-                                                                MatchPoint(nearestPoints[i])
-                                                                 );
-          if (it != laserCloudCornerFromMap->points.end()){
-            pointSearchInd.push_back(it - laserCloudCornerFromMap->points.begin());
-          }
-          // else
-          //   ROS_WARN("Element not found");
-        }
+        // for(int i=0; i<5; i++){
+        //   std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudCornerFromMap->points.begin(),
+        //                                                         laserCloudCornerFromMap->points.end(), 
+        //                                                         MatchPoint(nearestPoints[i])
+        //                                                          );
+        //   if (it != laserCloudCornerFromMap->points.end()){
+        //     pointSearchInd.push_back(it - laserCloudCornerFromMap->points.begin());
+        //   }
+        //   else
+        //     ROS_WARN("Element not found");
+        // }
 
         if (pointSearchSqDis[4] < 1.0)
         {
@@ -539,9 +546,9 @@ void LaserMapping::solveMapping()
           Eigen::Vector3d center(0, 0, 0);
           for (int j = 0; j < 5; j++)
           {
-            Eigen::Vector3d tmp(laserCloudCornerFromMap->points[pointSearchInd[j]].x,
-                                laserCloudCornerFromMap->points[pointSearchInd[j]].y,
-                                laserCloudCornerFromMap->points[pointSearchInd[j]].z);
+            Eigen::Vector3d tmp(nearestPoints[j].x,
+                                nearestPoints[j].y,
+                                nearestPoints[j].z);
             center = center + tmp;
             nearCorners.push_back(tmp);
           }
@@ -604,17 +611,17 @@ void LaserMapping::solveMapping()
         pointSearchInd.clear();
         kdtreeSurfFromMap->Nearest_Search(pointSel, 5, nearestPoints, pointSearchSqDis);
         //match nearest poitns to inds
-        for(int i=0; i<5; i++){
-          std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudSurfFromMap->points.begin(),
-                                                                laserCloudSurfFromMap->points.end(), 
-                                                                MatchPoint(nearestPoints[i])
-                                                                 );
-          if (it != laserCloudSurfFromMap->points.end()){
-            pointSearchInd.push_back(it - laserCloudSurfFromMap->points.begin());
-          }
-          // else
-          //   ROS_WARN("Element not found");
-        }
+        // for(int i=0; i<5; i++){
+        //   std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::iterator it = std::find_if(laserCloudSurfFromMap->points.begin(),
+        //                                                         laserCloudSurfFromMap->points.end(), 
+        //                                                         MatchPoint(nearestPoints[i])
+        //                                                          );
+        //   if (it != laserCloudSurfFromMap->points.end()){
+        //     pointSearchInd.push_back(it - laserCloudSurfFromMap->points.begin());
+        //   }
+        //   else
+        //     ROS_WARN("Element not found");
+        // }
 
         Eigen::Matrix<double, 5, 3> matA0;
         Eigen::Matrix<double, 5, 1> matB0 = -1 * Eigen::Matrix<double, 5, 1>::Ones();
@@ -622,9 +629,9 @@ void LaserMapping::solveMapping()
         {
           for (int j = 0; j < 5; j++)
           {
-            matA0(j, 0) = laserCloudSurfFromMap->points[pointSearchInd[j]].x;
-            matA0(j, 1) = laserCloudSurfFromMap->points[pointSearchInd[j]].y;
-            matA0(j, 2) = laserCloudSurfFromMap->points[pointSearchInd[j]].z;
+            matA0(j, 0) = nearestPoints[j].x;
+            matA0(j, 1) = nearestPoints[j].y;
+            matA0(j, 2) = nearestPoints[j].z;
             // ROS_INFO(" pts %f %f %f ", matA0(j, 0), matA0(j, 1), matA0(j, 2));
           }
           // find the norm of plane
@@ -637,9 +644,9 @@ void LaserMapping::solveMapping()
           for (int j = 0; j < 5; j++)
           {
             // if OX * n > 0.2, then plane is not fit well
-            if (fabs(norm(0) * laserCloudSurfFromMap->points[pointSearchInd[j]].x +
-                     norm(1) * laserCloudSurfFromMap->points[pointSearchInd[j]].y +
-                     norm(2) * laserCloudSurfFromMap->points[pointSearchInd[j]].z + negative_OA_dot_norm) > 0.2)
+            if (fabs(norm(0) * nearestPoints[j].x +
+                     norm(1) * nearestPoints[j].y +
+                     norm(2) * nearestPoints[j].z + negative_OA_dot_norm) > 0.2)
             {
               planeValid = false;
               break;
