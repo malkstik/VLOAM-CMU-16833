@@ -69,10 +69,11 @@ int sys_ret;
 std::string VOFileName;
 std::string LOFileName;
 std::string MOFileName;
+std::string TOFileName;
 FILE* LOFilePtr = NULL;
 FILE* VOFilePtr = NULL;
 FILE* MOFilePtr = NULL;
-
+FILE* TOFilePtr = NULL;
 void init(const vloam_main::vloam_mainGoalConstPtr& goal)
 {
   // section 1, initialize file pointers
@@ -86,6 +87,7 @@ void init(const vloam_main::vloam_mainGoalConstPtr& goal)
     VOFileName = ros::package::getPath("vloam_main") + "/results/" + goal->date + +"_drive_" + seq;
     LOFileName = ros::package::getPath("vloam_main") + "/results/" + goal->date + +"_drive_" + seq;
     MOFileName = ros::package::getPath("vloam_main") + "/results/" + goal->date + +"_drive_" + seq;
+    TOFileName = ros::package::getPath("vloam_main") + "/results/" + goal->date + +"_drive_" + seq;
 
     cmd = "mkdir -p " + VOFileName;
     sys_ret = system(cmd.c_str());
@@ -93,15 +95,16 @@ void init(const vloam_main::vloam_mainGoalConstPtr& goal)
     sys_ret = system(cmd.c_str());
     cmd = "mkdir -p " + MOFileName;
     sys_ret = system(cmd.c_str());
-
+    cmd = "mkdir -p " + MOFileName;
+    sys_ret = system(cmd.c_str());
     VOFileName += "/VO" + std::to_string(detach_VO_LO) + ".txt";
     LOFileName += "/LO" + std::to_string(detach_VO_LO) + ".txt";
     MOFileName += "/MO" + std::to_string(detach_VO_LO) + ".txt";
-
+    TOFileName += "/TO" + std::to_string(detach_VO_LO) + ".txt";
     VOFilePtr = fopen(VOFileName.c_str(), "w");
     LOFilePtr = fopen(LOFileName.c_str(), "w");
     MOFilePtr = fopen(MOFileName.c_str(), "w");
-
+    TOFilePtr = fopen(TOFileName.c_str(), "w");
     if (VOFilePtr == NULL or LOFilePtr == NULL or MOFilePtr == NULL)
     {
       ROS_INFO("FilePtr == NULL");
@@ -163,9 +166,9 @@ void callback(const sensor_msgs::Image::ConstPtr& image_msg, const sensor_msgs::
   VO->publish();                                                                   // publish nav_msgs::odometry
 
   // Section 5: Solve and Publish LO MO
-  LOAM->scanRegistrationIO(point_cloud_pcl);
-  LOAM->laserOdometryIO();
-  LOAM->laserMappingIO();
+  LOAM->scanRegistrationIO(point_cloud_pcl,TOFilePtr);
+  LOAM->laserOdometryIO(TOFilePtr);
+  LOAM->laserMappingIO(TOFilePtr);
 
   // Section 6, save odoms
   if (save_traj and count >= start_frame and count <= end_frame)
@@ -214,7 +217,8 @@ void execute(const vloam_main::vloam_mainGoalConstPtr& goal, Server* as)
     fclose(LOFilePtr);
     fclose(VOFilePtr);
     fclose(MOFilePtr);
-    ROS_INFO("\n LO, VO, MO saved\n\n");
+    fclose(TOFilePtr);
+    ROS_INFO("\n LO, VO, MO,TO saved\n\n");
   }
 
   result.loading_finished = true;

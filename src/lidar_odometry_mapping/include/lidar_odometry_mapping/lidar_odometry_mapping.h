@@ -53,10 +53,10 @@ public:
 
   void reset();
 
-  void scanRegistrationIO(const pcl::PointCloud<pcl::PointXYZ>& laserCloudIn);
-  void laserOdometryIO();
+  void scanRegistrationIO(const pcl::PointCloud<pcl::PointXYZ>& laserCloudIn, FILE *TOFilePtr);
+  void laserOdometryIO(FILE *TOFilePtr);
   // void laserOdometryIO(const tf2::Transform& cam0_curr_T_cam0_last);
-  void laserMappingIO();
+  void laserMappingIO(FILE *TOFilePtr);
 
 private:
   std::shared_ptr<VloamTF> vloam_tf;

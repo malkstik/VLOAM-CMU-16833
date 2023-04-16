@@ -70,7 +70,7 @@ void LidarOdometryMapping::reset()
   laser_mapping.reset();
 }
 
-void LidarOdometryMapping::scanRegistrationIO(const pcl::PointCloud<pcl::PointXYZ>& laserCloudIn)
+void LidarOdometryMapping::scanRegistrationIO(const pcl::PointCloud<pcl::PointXYZ>& laserCloudIn, FILE *TOFilePtr)
 {
   loam_timer.tic();
   frame_time = 0.0;
@@ -90,10 +90,13 @@ void LidarOdometryMapping::scanRegistrationIO(const pcl::PointCloud<pcl::PointXY
   {
     ROS_INFO("Scan Registration takes %f ms \n", loam_timer.toc());
   }
+  if (TOFilePtr != NULL) {
+    fprintf(TOFilePtr, "%.4f ", loam_timer.toc());
+  }
   frame_time += loam_timer.toc();
 }
 
-void LidarOdometryMapping::laserOdometryIO()
+void LidarOdometryMapping::laserOdometryIO(FILE *TOFilePtr)
 {
   loam_timer.tic();
 
@@ -119,10 +122,13 @@ void LidarOdometryMapping::laserOdometryIO()
   {
     ROS_INFO("Laser Odometry takes %f ms \n", loam_timer.toc());
   }
+  if (TOFilePtr != NULL) {
+    fprintf(TOFilePtr, "%.4f ", loam_timer.toc());
+  }
   frame_time += loam_timer.toc();
 }
 
-void LidarOdometryMapping::laserMappingIO()
+void LidarOdometryMapping::laserMappingIO(FILE *TOFilePtr)
 {
   loam_timer.tic();
 
@@ -138,26 +144,20 @@ void LidarOdometryMapping::laserMappingIO()
 
   laser_mapping.publish();
 
-  // laser_odometry.output(
-
-  // );
-
   if (verbose_level > 0)
   {
     ROS_INFO("Laser Mapping takes %f ms \n", loam_timer.toc());
   }
+
   frame_time += loam_timer.toc();
   if (frame_time > 100)
   {
     ROS_WARN("LOAM takes %f ms (>100 ms)", frame_time);
   }
+  if (TOFilePtr != NULL) {
+    fprintf(TOFilePtr, "%.4f %.4f \n", loam_timer.toc(), frame_time);
+  }
 }
 
-// void LidarOdometryMapping::solveLOAM() {
-//     laser_odometry.solveLO();
-//     laser_mapping.solveMapping();
-
-//     // TODO: check the running time constraint: 0.1s
-// }
 
 }  // namespace vloam

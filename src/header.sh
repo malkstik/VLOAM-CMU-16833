@@ -10,7 +10,7 @@ goal_id:
     nsecs: 0
   id: ''
 goal:
-  date: '2011_09_26'
-  seq: '18' 
+  date: '2011_09_30'
+  seq: '16' 
   start_frame: 0
-  end_frame: 276"
+  end_frame: 270"
