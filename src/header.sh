@@ -11,6 +11,6 @@ goal_id:
   id: ''
 goal:
   date: '2011_09_30'
-  seq: '16' 
+  seq: '18' 
   start_frame: 0
-  end_frame: 270"
+  end_frame: 2760"
