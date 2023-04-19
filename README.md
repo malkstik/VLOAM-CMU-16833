@@ -1,6 +1,6 @@
 # Introduction
 
-This repository is a reimplementation of the VLOAM algorithm [1]. The LOAM/Lidar Odometry part is adapted and refactored from ALOAM [2], and the Visual Odometry part is written according to the DEMO paper [3].
+This repository is a fork of YukunXia/VLOAM-CMU-16833, a reimplementation of the VLOAM algorithm [1], for the ROB 530 Mobile Robotics W23. Our fork replaces the FLANN kd trees in the original framework with the ikd tree[2].
 
 The following figure [1] illustrates the pipeline of the VLOAM algorithm. 
 
@@ -24,6 +24,7 @@ Eigen3 3.3
 Ceres 2.0
 PCL 1.2
 
+This implementation has been verified on Ubuntu 20.04.5 LTS with ROS Noetic
 ## Evaluation tool
 
 ![demo](figures/kitti_car.png)
@@ -34,14 +35,10 @@ https://github.com/LeoQLi/KITTI_odometry_evaluation_tool
 
 Place bag files under "src/vloam_main/bags/"
 
-Note: current dataloader only support "synced" type dataset. 
-
 # Reference:
 
 [1] J. Zhang and S. Singh. Laser-visual-inertial Odometry and
 Mapping with High Robustness and Low Drift. Journal of
 Field Robotics. vol. 35, no. 8, pp. 1242–1264, 2018.
 
-[2] T. Qin and S. Cao. A-LOAM. https://github.com/HKUST-Aerial-Robotics/A-LOAM
-
-[3] Zhang, Ji, Michael Kaess, and Sanjiv Singh. "Real-time depth enhanced monocular odometry." 2014 IEEE/RSJ International Conference on Intelligent Robots and Systems. IEEE, 2014.
+[2] Y. Cai, W. Xu, and F. Zhang, “ikd-tree: An incremental k-d tree for robotic applications,” 2021
