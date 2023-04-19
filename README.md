@@ -8,15 +8,12 @@ The following figure [1] illustrates the pipeline of the VLOAM algorithm.
 
 # Results
 
-![demo](figures/results.png)
-
-Video: https://youtu.be/NnoxB3r_cDM
+Video: https://youtu.be/rOwxxFwpOMY
 
 ![demo](figures/evaluation.png)
 
-# Detailed Usage
+The processing time for steps related to the lidar map solving (scan registration, lidar odometry, lidar mapping) is recorded to numerically compare the speed performance. With the benefit brought from ikd tree, the time in Lidar mapping process is reduced from 180.70ms to 161.72ms on average, resulting in a 10.5% improvement.  
 
-Check README.md under `src/vloam_main`
 ## Prerequisites
 
 OpenCV 4.5.1
@@ -27,13 +24,13 @@ PCL 1.2
 This implementation has been verified on Ubuntu 20.04.5 LTS with ROS Noetic
 ## Evaluation tool
 
-![demo](figures/kitti_car.png)
+The ground truth is downloaded from https://www.cvlibs.net/datasets/kitti/eval_odometry.php
 
-https://github.com/LeoQLi/KITTI_odometry_evaluation_tool
+The evaluation tool is from https://github.com/LeoQLi/KITTI_odometry_evaluation_tool
 
 ## Data format
 
-Place bag files under "src/vloam_main/bags/"
+Create new folder "src/vloam_main/bags/", put bags file under it.
 
 # Reference:
 
